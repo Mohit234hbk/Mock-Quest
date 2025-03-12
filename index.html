@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>उत्तराखंड प्रतियोगी परीक्षा प्रश्न पत्र</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #fdfcfb;
+            padding: 30px;
+            line-height: 1.8;
+            color: #222;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 16px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        h2 {
+            text-align: center;
+            color: #34495e;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        #instructions {
+            background-color: #eaf2f8;
+            border-left: 4px solid #3498db;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        #timer {
+            text-align: center;
+            font-size: 20px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-top: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        .subject-title {
+            font-weight: bold;
+            font-size: 26px;
+            margin-bottom: 20px;
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 10px;
+        }
+        .question {
+            margin: 25px 0;
+            font-size: 18px;
+        }
+        .options {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .options label {
+            display: block;
+            margin: 5px 0;
+        }
+        .show-answer-btn,
+        .hide-answer-btn {
+            margin-top: 10px;
+            background-color: #f39c12;
+            color: white;
+            padding: 6px 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .show-answer-btn:hover,
+        .hide-answer-btn:hover {
+            background-color: #d68910;
+        }
+        .correct-highlight {
+            background-color: #d4edda;
+            color: green;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        #submitBtn {
+            display: block;
+            margin: 30px auto;
+            background-color: #1a73e8;
+            color: white;
+            padding: 12px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #submitBtn:hover {
+            background-color: #155dc4;
+        }
+        #result {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: green;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>उत्तराखंड प्रतियोगी परीक्षा प्रश्न पत्र</h1>
+        <h2>कुल अंक: 100 | कुल प्रश्न: 100 | नकारात्मक अंकन: प्रत्येक गलत उत्तर पर -0.25 अंक</h2>
+
+        <div id="instructions">
+            <strong>निर्देश:</strong>
+            <ul>
+                <li>कुल समय: 60 मिनट</li>
+                <li>प्रत्येक सही उत्तर के लिए 1 अंक मिलेगा।</li>
+                <li>प्रत्येक गलत उत्तर के लिए 0.25 अंक काटे जाएंगे।</li>
+                <li>उत्तर सावधानीपूर्वक चुनें।</li>
+                <li>प्रश्न हल करने के बाद Submit बटन दबाएं।</li>
+            </ul>
+        </div>
+
+        <div id="timer">समय बचा है: 60:00</div>
+        <div id="questions-container"></div>
+        <button id="submitBtn">Submit</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let correctAnswers = {};
+        let totalMarks = 0;
+        let totalSeconds = 60 * 60; // 60 minutes
+        const timerDiv = document.getElementById('timer');
+
+        const timerInterval = setInterval(() => {
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = totalSeconds % 60;
+            timerDiv.innerText = `समय बचा है: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            totalSeconds--;
+            if (totalSeconds < 0) {
+                clearInterval(timerInterval);
+                document.getElementById('submitBtn').click();
+            }
+        }, 1000);
+
+        fetch('questions.json')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('questions-container');
+                data.sections.forEach((section, secIndex) => {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.classList.add('section');
+
+                    const header = document.createElement('div');
+                    header.classList.add('subject-title');
+                    header.innerText = section.title;
+                    sectionDiv.appendChild(header);
+
+                    section.questions.forEach((q, idx) => {
+                        const qDiv = document.createElement('div');
+                        qDiv.classList.add('question');
+                        const qId = `sec${secIndex}-q${idx}`;
+                        qDiv.innerHTML = `<div>${idx + 1}. ${q.question}</div>`;
+
+                        const optionsDiv = document.createElement('div');
+                        optionsDiv.classList.add('options');
+                        const optionLabels = ['A', 'B', 'C', 'D'];
+
+                        q.options.forEach((opt, i) => {
+                            const radio = document.createElement('input');
+                            radio.type = 'radio';
+                            radio.name = qId;
+                            radio.value = i;
+                            radio.id = `${qId}-opt${i}`;
+
+                            const label = document.createElement('label');
+                            label.setAttribute('for', radio.id);
+                            label.innerHTML = `${optionLabels[i]}. ${opt}`;
+                            optionsDiv.appendChild(radio);
+                            optionsDiv.appendChild(label);
+                        });
+
+                        qDiv.appendChild(optionsDiv);
+
+                        const showAnsBtn = document.createElement('button');
+                        showAnsBtn.innerText = 'सही उत्तर दिखाएं';
+                        showAnsBtn.classList.add('show-answer-btn');
+
+                        const hideAnsBtn = document.createElement('button');
+                        hideAnsBtn.innerText = 'सही उत्तर छिपाएं';
+                        hideAnsBtn.classList.add('hide-answer-btn');
+                        hideAnsBtn.style.display = 'none';
+
+                        showAnsBtn.addEventListener('click', () => {
+                            const correctIndex = q.answer;
+                            const labels = optionsDiv.querySelectorAll('label');
+                            labels[correctIndex].classList.add('correct-highlight');
+                            showAnsBtn.style.display = 'none';
+                            hideAnsBtn.style.display = 'inline-block';
+                        });
+
+                        hideAnsBtn.addEventListener('click', () => {
+                            const correctIndex = q.answer;
+                            const labels = optionsDiv.querySelectorAll('label');
+                            labels[correctIndex].classList.remove('correct-highlight');
+                            hideAnsBtn.style.display = 'none';
+                            showAnsBtn.style.display = 'inline-block';
+                        });
+
+                        qDiv.appendChild(showAnsBtn);
+                        qDiv.appendChild(hideAnsBtn);
+                        sectionDiv.appendChild(qDiv);
+                        correctAnswers[qId] = q.answer;
+                    });
+
+                    container.appendChild(sectionDiv);
+                });
+            })
+            .catch(err => {
+                document.getElementById('questions-container').innerHTML = '<p style="color:red;">JSON फाइल लोड नहीं हो पाई। कृपया सुनिश्चित करें कि questions.json फाइल उसी फोल्डर में है और आप HTML फाइल को लोकल सर्वर पर चला रहे हैं।</p>';
+                console.error("Error loading JSON:", err);
+            });
+
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            let score = 0;
+            let total = Object.keys(correctAnswers).length;
+            Object.keys(correctAnswers).forEach(qId => {
+                const selected = document.querySelector(`input[name='${qId}']:checked`);
+                if (selected) {
+                    if (parseInt(selected.value) === correctAnswers[qId]) {
+                        score += 1;
+                    } else {
+                        score -= 0.25;
+                    }
+                }
+            });
+            const percentage = ((score / total) * 100).toFixed(2);
+            document.getElementById('result').innerText = `आपने कुल ${total} में से ${score.toFixed(2)} अंक प्राप्त किए हैं। (${percentage}%)`;
+            clearInterval(timerInterval);
+        });
+    </script>
+</body>
+</html>
